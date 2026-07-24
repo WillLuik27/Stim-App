@@ -1,0 +1,211 @@
+import SwiftUI
+
+struct SettingsView: View {
+
+    @ObservedObject var prefs: Preferences
+    /// Fires a flash on the main screen so a picked colour can be seen for real.
+    var previewFlash: () -> Void
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 26) {
+                header
+
+                section("Feel") {
+                    VStack(spacing: 8) {
+                        ForEach(HapticProfile.all) { profile in
+                            profileRow(profile)
+                        }
+                    }
+                }
+
+                section("Flash") {
+                    VStack(alignment: .leading, spacing: 14) {
+                        HStack(spacing: 12) {
+                            whiteSwatch
+                            SpectrumSlider(
+                                hue: $prefs.flashHue,
+                                isActive: !prefs.flashUsesWhite,
+                                onScrub: {
+                                    // Guarded: this runs every frame of the drag,
+                                    // and the setter writes to UserDefaults.
+                                    if prefs.flashUsesWhite { prefs.flashUsesWhite = false }
+                                },
+                                onCommit: {
+                                    Haptics.shared.transient(intensity: 0.5, sharpness: 0.7)
+                                }
+                            )
+                        }
+
+                        Button {
+                            dismiss()
+                            // Let the sheet get out of the way before firing,
+                            // otherwise the flash goes off behind it.
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.42) {
+                                previewFlash()
+                            }
+                        } label: {
+                            Text("Test flash")
+                                .font(.system(size: 14, weight: .semibold, design: .rounded))
+                                .foregroundStyle(.black.opacity(0.85))
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 11)
+                                .background(Capsule().fill(prefs.flashColor))
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+            }
+            .padding(22)
+        }
+        .scrollBounceBehavior(.basedOnSize)
+        .presentationDetents([.height(620), .large])
+        .presentationDragIndicator(.visible)
+        .presentationBackground(Color(white: 0.07))
+        .preferredColorScheme(.dark)
+    }
+
+    private var header: some View {
+        HStack {
+            Text("Settings")
+                .font(.system(size: 26, weight: .semibold, design: .rounded))
+                .foregroundStyle(.white)
+            Spacer()
+            Button { dismiss() } label: {
+                Image(systemName: "xmark")
+                    .font(.system(size: 14, weight: .bold))
+                    .foregroundStyle(.white.opacity(0.5))
+                    .frame(width: 32, height: 32)
+                    .background(Circle().fill(.white.opacity(0.08)))
+            }
+            .buttonStyle(.plain)
+        }
+    }
+
+    private func section<Content: View>(_ title: String,
+                                        @ViewBuilder content: () -> Content) -> some View {
+        VStack(alignment: .leading, spacing: 11) {
+            Text(title.uppercased())
+                .font(.system(size: 11, weight: .semibold, design: .rounded))
+                .tracking(1.6)
+                .foregroundStyle(.white.opacity(0.32))
+            content()
+        }
+    }
+
+    private func profileRow(_ profile: HapticProfile) -> some View {
+        let selected = prefs.profileKind == profile.id
+        return Button {
+            prefs.profileKind = profile.id
+            // Play it immediately — the description only means so much.
+            Haptics.shared.demo()
+        } label: {
+            HStack(spacing: 14) {
+                Image(systemName: profile.symbol)
+                    .font(.system(size: 17, weight: .semibold))
+                    .foregroundStyle(selected ? .white : .white.opacity(0.42))
+                    .frame(width: 26)
+
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(profile.name)
+                        .font(.system(size: 16, weight: .semibold, design: .rounded))
+                        .foregroundStyle(selected ? .white : .white.opacity(0.78))
+                    Text(profile.blurb)
+                        .font(.system(size: 12, weight: .regular, design: .rounded))
+                        .foregroundStyle(.white.opacity(0.38))
+                        .fixedSize(horizontal: false, vertical: true)
+                        .multilineTextAlignment(.leading)
+                }
+
+                Spacer(minLength: 8)
+
+                Image(systemName: "checkmark")
+                    .font(.system(size: 13, weight: .bold))
+                    .foregroundStyle(.white)
+                    .opacity(selected ? 1 : 0)
+            }
+            .padding(14)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(
+                RoundedRectangle(cornerRadius: 15, style: .continuous)
+                    .fill(.white.opacity(selected ? 0.10 : 0.045))
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 15, style: .continuous)
+                    .strokeBorder(.white.opacity(selected ? 0.22 : 0.06), lineWidth: 1)
+            )
+        }
+        .buttonStyle(.plain)
+        .animation(.easeOut(duration: 0.18), value: selected)
+    }
+
+    private var whiteSwatch: some View {
+        Button {
+            prefs.flashUsesWhite = true
+            Haptics.shared.transient(intensity: 0.5, sharpness: 0.7)
+        } label: {
+            Circle()
+                .fill(.white)
+                .frame(width: 32, height: 32)
+                .overlay(
+                    Circle()
+                        .strokeBorder(.white.opacity(prefs.flashUsesWhite ? 0.9 : 0), lineWidth: 2)
+                        .padding(-4)
+                )
+        }
+        .buttonStyle(.plain)
+        .animation(.easeOut(duration: 0.15), value: prefs.flashUsesWhite)
+    }
+}
+
+/// A continuous rainbow the flash colour is picked from.
+private struct SpectrumSlider: View {
+
+    @Binding var hue: Double
+    var isActive: Bool
+    /// Every frame of the drag. Keep this cheap.
+    var onScrub: () -> Void
+    /// Once, on release. Safe place for a haptic.
+    var onCommit: () -> Void
+
+    /// Enough stops that the gradient reads as a smooth spectrum rather than as
+    /// a handful of blended bands.
+    private static let spectrum: [Color] = stride(from: 0.0, through: 1.0, by: 1.0 / 24.0)
+        .map { Color(hue: $0, saturation: 1, brightness: 1) }
+
+    var body: some View {
+        GeometryReader { geo in
+            let width = geo.size.width
+            let knob: CGFloat = 26
+
+            ZStack(alignment: .leading) {
+                Capsule()
+                    .fill(LinearGradient(colors: Self.spectrum,
+                                         startPoint: .leading,
+                                         endPoint: .trailing))
+
+                Circle()
+                    .fill(Color(hue: hue, saturation: 1, brightness: 1))
+                    .frame(width: knob, height: knob)
+                    .overlay(Circle().strokeBorder(.white, lineWidth: 2.5))
+                    .shadow(color: .black.opacity(0.45), radius: 3, y: 1)
+                    // Dimmed rather than hidden while White is active, so the bar
+                    // still reads as something you can grab.
+                    .opacity(isActive ? 1 : 0.35)
+                    // Inset so the knob stays fully on the bar at both ends.
+                    .offset(x: (width - knob) * hue)
+            }
+            .contentShape(Rectangle())
+            .gesture(
+                DragGesture(minimumDistance: 0)
+                    .onChanged { value in
+                        hue = min(max(value.location.x / max(width, 1), 0), 0.9999)
+                        onScrub()
+                    }
+                    .onEnded { _ in onCommit() }
+            )
+        }
+        .frame(height: 32)
+    }
+}
