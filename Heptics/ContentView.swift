@@ -23,7 +23,7 @@ struct ContentView: View {
         .onAppear(perform: controller.onAppear)
         .onDisappear(perform: controller.onDisappear)
         .sheet(isPresented: $showSettings) {
-            SettingsView(prefs: prefs, previewFlash: controller.fireFlash)
+            SettingsView(prefs: prefs)
         }
     }
 

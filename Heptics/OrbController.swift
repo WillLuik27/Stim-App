@@ -8,12 +8,13 @@ final class OrbController: ObservableObject {
     static let orbDiameter: CGFloat = 200
     /// How far the orb is allowed to visually drift from centre, in points.
     /// Deliberately small — the orb should read as anchored, not thrown around.
-    static let travelLimit: CGFloat = 26
+    static let travelLimit: CGFloat = 13
 
-    /// Finger distance that counts as a full-strength pull. Much larger than
-    /// `travelLimit`, so the haptics keep responding long after the orb has
-    /// stopped moving — you feel the strain rather than see it.
-    private static let reachDistance: CGFloat = 170
+    /// Finger distance that counts as a full-strength pull. Larger than
+    /// `travelLimit`, so the haptics keep responding after the orb has stopped
+    /// moving — you feel the strain rather than see it. Kept short so the buzz
+    /// ramps up almost as soon as you start to move, not halfway across a drag.
+    private static let reachDistance: CGFloat = 85
 
     @Published var offset: CGSize = .zero
     @Published var isDragging = false

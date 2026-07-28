@@ -13,6 +13,9 @@ struct HapticProfile: Identifiable, Equatable {
 
     enum Kind: String, CaseIterable {
         case aggressive, smooth, melodic, discordant
+        /// A tuning the user builds themselves. Its parameters live in
+        /// `Preferences`, not in the presets below.
+        case custom
     }
 
     /// An extra hit layered into the tap pattern.

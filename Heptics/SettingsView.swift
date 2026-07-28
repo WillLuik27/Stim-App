@@ -3,67 +3,49 @@ import SwiftUI
 struct SettingsView: View {
 
     @ObservedObject var prefs: Preferences
-    /// Fires a flash on the main screen so a picked colour can be seen for real.
-    var previewFlash: () -> Void
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
+        NavigationStack {
+            content
+                .toolbar(.hidden, for: .navigationBar)
+        }
+        .presentationDetents([.height(620), .large])
+        .presentationDragIndicator(.visible)
+        .presentationBackground(Color(white: 0.07))
+        .preferredColorScheme(.dark)
+    }
+
+    private var content: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 26) {
                 header
 
                 section("Feel") {
-                    VStack(spacing: 8) {
-                        ForEach(HapticProfile.all) { profile in
-                            profileRow(profile)
-                        }
-                    }
+                    feelRow
                 }
 
                 section("Flash") {
-                    VStack(alignment: .leading, spacing: 14) {
-                        HStack(spacing: 12) {
-                            whiteSwatch
-                            SpectrumSlider(
-                                hue: $prefs.flashHue,
-                                isActive: !prefs.flashUsesWhite,
-                                onScrub: {
-                                    // Guarded: this runs every frame of the drag,
-                                    // and the setter writes to UserDefaults.
-                                    if prefs.flashUsesWhite { prefs.flashUsesWhite = false }
-                                },
-                                onCommit: {
-                                    Haptics.shared.transient(intensity: 0.5, sharpness: 0.7)
-                                }
-                            )
-                        }
-
-                        Button {
-                            dismiss()
-                            // Let the sheet get out of the way before firing,
-                            // otherwise the flash goes off behind it.
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.42) {
-                                previewFlash()
+                    HStack(spacing: 12) {
+                        whiteSwatch
+                        SpectrumSlider(
+                            hue: $prefs.flashHue,
+                            isActive: !prefs.flashUsesWhite,
+                            onScrub: {
+                                // Guarded: this runs every frame of the drag,
+                                // and the setter writes to UserDefaults.
+                                if prefs.flashUsesWhite { prefs.flashUsesWhite = false }
+                            },
+                            onCommit: {
+                                Haptics.shared.transient(intensity: 0.5, sharpness: 0.7)
                             }
-                        } label: {
-                            Text("Test flash")
-                                .font(.system(size: 14, weight: .semibold, design: .rounded))
-                                .foregroundStyle(.black.opacity(0.85))
-                                .frame(maxWidth: .infinity)
-                                .padding(.vertical, 11)
-                                .background(Capsule().fill(prefs.flashColor))
-                        }
-                        .buttonStyle(.plain)
+                        )
                     }
                 }
             }
             .padding(22)
         }
         .scrollBounceBehavior(.basedOnSize)
-        .presentationDetents([.height(620), .large])
-        .presentationDragIndicator(.visible)
-        .presentationBackground(Color(white: 0.07))
-        .preferredColorScheme(.dark)
     }
 
     private var header: some View {
@@ -94,50 +76,49 @@ struct SettingsView: View {
         }
     }
 
-    private func profileRow(_ profile: HapticProfile) -> some View {
-        let selected = prefs.profileKind == profile.id
-        return Button {
-            prefs.profileKind = profile.id
-            // Play it immediately — the description only means so much.
-            Haptics.shared.demo()
+    /// The whole feel picker now lives one page over. This row shows the active
+    /// feel's name and icon and navigates into `FeelView` to change it. Saving a
+    /// Custom feel there dismisses the whole sheet back to the orb.
+    private var feelRow: some View {
+        let active = HapticProfile.profile(for: prefs.profileKind)
+        let name = prefs.profileKind == .custom ? "Custom" : active.name
+        let symbol = prefs.profileKind == .custom ? "slider.horizontal.3" : active.symbol
+        return NavigationLink {
+            FeelView(prefs: prefs, dismissToOrb: { dismiss() })
         } label: {
             HStack(spacing: 14) {
-                Image(systemName: profile.symbol)
+                Image(systemName: symbol)
                     .font(.system(size: 17, weight: .semibold))
-                    .foregroundStyle(selected ? .white : .white.opacity(0.42))
+                    .foregroundStyle(.white)
                     .frame(width: 26)
 
                 VStack(alignment: .leading, spacing: 3) {
-                    Text(profile.name)
+                    Text("Change feel")
                         .font(.system(size: 16, weight: .semibold, design: .rounded))
-                        .foregroundStyle(selected ? .white : .white.opacity(0.78))
-                    Text(profile.blurb)
+                        .foregroundStyle(.white)
+                    Text(name)
                         .font(.system(size: 12, weight: .regular, design: .rounded))
-                        .foregroundStyle(.white.opacity(0.38))
-                        .fixedSize(horizontal: false, vertical: true)
-                        .multilineTextAlignment(.leading)
+                        .foregroundStyle(.white.opacity(0.5))
                 }
 
                 Spacer(minLength: 8)
 
-                Image(systemName: "checkmark")
-                    .font(.system(size: 13, weight: .bold))
-                    .foregroundStyle(.white)
-                    .opacity(selected ? 1 : 0)
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundStyle(.white.opacity(0.3))
             }
             .padding(14)
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(
                 RoundedRectangle(cornerRadius: 15, style: .continuous)
-                    .fill(.white.opacity(selected ? 0.10 : 0.045))
+                    .fill(.white.opacity(0.045))
             )
             .overlay(
                 RoundedRectangle(cornerRadius: 15, style: .continuous)
-                    .strokeBorder(.white.opacity(selected ? 0.22 : 0.06), lineWidth: 1)
+                    .strokeBorder(.white.opacity(0.06), lineWidth: 1)
             )
         }
         .buttonStyle(.plain)
-        .animation(.easeOut(duration: 0.18), value: selected)
     }
 
     private var whiteSwatch: some View {
