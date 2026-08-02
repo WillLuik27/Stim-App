@@ -17,8 +17,12 @@ enum Strength {
 
     /// Spring-back thump when you let go.
     static let settle: Float = 0.80
-    /// Click when the pull maxes out.
+    /// Two lumps of goo running back into one.
+    static let blend: Float = 0.55
+    /// Click when a blob hits the edge of the screen.
     static let edge: Float = 0.92
+    /// A neck pinching off. Second only to the tap.
+    static let snap: Float = 0.96
     /// Shake rumble.
     static let rumble: Float = 1.0
     /// Tap. The hardest hit in the app, by design.
@@ -39,7 +43,9 @@ final class Haptics {
     static let shared = Haptics()
 
     /// The active feel. Scales and shapes everything played from here on.
-    var profile: HapticProfile = .smooth
+    /// Matches the default in `Preferences`, so the very first haptic of a fresh
+    /// launch is already the right one even if it beats the prefs being loaded.
+    var profile: HapticProfile = .aggressive
 
     private(set) var supportsHaptics = CHHapticEngine.capabilitiesForHardware().supportsHaptics
 
@@ -255,9 +261,72 @@ final class Haptics {
         play(events: events, curves: [decay])
     }
 
-    /// Firm click when the pull maxes out.
+    /// Firm click when a blob runs into the edge of the screen.
     func edge() {
         transient(intensity: Strength.edge, sharpness: 1.0)
+    }
+
+    /// A neck letting go.
+    ///
+    /// The moment the whole gesture is built around, so it is the only thing other
+    /// than a tap that hits at full force. Three parts: a bright strike as the
+    /// thread parts, a very short body that falls away fast, and a low knock
+    /// underneath as the droplet closes back up around itself.
+    func snap(strength: Float) {
+        guard supportsHaptics else {
+            rigidImpact.impactOccurred(intensity: CGFloat(clamp(strength * profile.intensity)))
+            return
+        }
+        let s = clamp(strength) * Strength.snap
+        let body: TimeInterval = 0.09
+
+        let decay = CHHapticParameterCurve(
+            parameterID: .hapticIntensityControl,
+            controlPoints: [
+                CHHapticParameterCurve.ControlPoint(relativeTime: 0, value: 1.0),
+                CHHapticParameterCurve.ControlPoint(relativeTime: body, value: 0.0)
+            ],
+            relativeTime: 0.004
+        )
+        play(events: [
+            CHHapticEvent(eventType: .hapticTransient,
+                          parameters: [intensityParam(s), sharpnessParam(1.0)],
+                          relativeTime: 0),
+            CHHapticEvent(eventType: .hapticContinuous,
+                          parameters: [intensityParam(s * 0.55), sharpnessParam(0.75)],
+                          relativeTime: 0.004,
+                          duration: body),
+            CHHapticEvent(eventType: .hapticTransient,
+                          parameters: [intensityParam(s * 0.60), sharpnessParam(0.15)],
+                          relativeTime: body + 0.03)
+        ], curves: [decay])
+    }
+
+    /// Two lumps of goo running back together. Low, soft, and swelling rather than
+    /// striking — the exact opposite of `snap`.
+    func blend(strength: Float) {
+        guard supportsHaptics else {
+            softImpact.impactOccurred(intensity: CGFloat(clamp(strength * profile.intensity * 0.6)))
+            return
+        }
+        let s = clamp(strength) * Strength.blend
+        let duration: TimeInterval = 0.17
+
+        let swell = CHHapticParameterCurve(
+            parameterID: .hapticIntensityControl,
+            controlPoints: [
+                CHHapticParameterCurve.ControlPoint(relativeTime: 0, value: 0.15),
+                CHHapticParameterCurve.ControlPoint(relativeTime: 0.055, value: 1.0),
+                CHHapticParameterCurve.ControlPoint(relativeTime: duration, value: 0.0)
+            ],
+            relativeTime: 0
+        )
+        play(events: [
+            CHHapticEvent(eventType: .hapticContinuous,
+                          parameters: [intensityParam(s), sharpnessParam(0.05)],
+                          relativeTime: 0,
+                          duration: duration)
+        ], curves: [swell])
     }
 
     /// Soft decaying thump as the orb springs back to centre.

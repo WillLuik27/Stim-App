@@ -140,7 +140,11 @@ extension HapticProfile {
 
     static let all: [HapticProfile] = [.aggressive, .smooth, .melodic, .discordant]
 
+    /// What a fresh install feels like. Aggressive, so the first thing anyone does
+    /// with the app lands at full force rather than politely.
+    static let fallback: HapticProfile = .aggressive
+
     static func profile(for kind: Kind) -> HapticProfile {
-        all.first { $0.id == kind } ?? .smooth
+        all.first { $0.id == kind } ?? fallback
     }
 }

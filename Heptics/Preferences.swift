@@ -176,7 +176,7 @@ final class Preferences: ObservableObject {
         let store = UserDefaults.standard
 
         let saved = store.string(forKey: Keys.profile).flatMap(HapticProfile.Kind.init(rawValue:))
-        profileKind = saved ?? .smooth
+        profileKind = saved ?? HapticProfile.fallback.id
         flashUsesWhite = store.object(forKey: Keys.flashWhite) as? Bool ?? true
         flashHue = store.object(forKey: Keys.flashHue) as? Double ?? 0.55
 
