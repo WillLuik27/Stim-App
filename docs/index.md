@@ -1,4 +1,5 @@
 ---
+layout: default
 title: Pocket Stim — Support
 ---
 
@@ -45,4 +46,4 @@ and the whole app is built around what you feel.
 ## Privacy
 
 Pocket Stim collects no data whatsoever. Read the full
-[privacy policy](privacy.md).
+[privacy policy](privacy.html).

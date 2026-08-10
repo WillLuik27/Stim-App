@@ -118,12 +118,13 @@ SDK, no third-party packages, no CloudKit, no StoreKit. Answer "No" to tracking
 
 ## URLs
 
-- **Privacy policy URL** (required): `https://<user>.github.io/<repo>/privacy`
-- **Support URL** (required): `https://<user>.github.io/<repo>/`
+- **Privacy policy URL** (required):
+  `https://willluik27.github.io/Stim-App/privacy.html`
+- **Support URL** (required): `https://willluik27.github.io/Stim-App/`
 - **Marketing URL** (optional): leave blank
 
-Both must load anonymously. Test them in a private browser window before
-submitting.
+Served by GitHub Pages from `/docs` on `main`. Both must load anonymously —
+test them in a private browser window before submitting.
 
 ## Copyright
 

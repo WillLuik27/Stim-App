@@ -1,0 +1,15 @@
+# GitHub Pages config for the support and privacy pages.
+#
+# This folder is the site root — Pages is set to serve from /docs on main — so
+# this file sits here rather than at the top of the repository.
+#
+# Without a theme, Jekyll emits the markdown as unstyled HTML with no <title>.
+# Any supported theme fixes both; Cayman is a plain header and a column of text,
+# which is all these two pages need.
+title: Pocket Stim
+description: A ball of goo that lives in your pocket.
+theme: jekyll-theme-cayman
+
+# Nothing here should be published except the two pages.
+exclude:
+  - README.md
