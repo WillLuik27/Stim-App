@@ -26,20 +26,29 @@ struct SettingsView: View {
                 }
 
                 section("Flash") {
-                    HStack(spacing: 12) {
-                        whiteSwatch
-                        SpectrumSlider(
-                            hue: $prefs.flashHue,
-                            isActive: !prefs.flashUsesWhite,
-                            onScrub: {
-                                // Guarded: this runs every frame of the drag,
-                                // and the setter writes to UserDefaults.
-                                if prefs.flashUsesWhite { prefs.flashUsesWhite = false }
-                            },
-                            onCommit: {
-                                Haptics.shared.transient(intensity: 0.5, sharpness: 0.7)
-                            }
-                        )
+                    VStack(spacing: 11) {
+                        flashSwitch
+
+                        HStack(spacing: 12) {
+                            whiteSwatch
+                            SpectrumSlider(
+                                hue: $prefs.flashHue,
+                                isActive: !prefs.flashUsesWhite,
+                                onScrub: {
+                                    // Guarded: this runs every frame of the drag,
+                                    // and the setter writes to UserDefaults.
+                                    if prefs.flashUsesWhite { prefs.flashUsesWhite = false }
+                                },
+                                onCommit: {
+                                    Haptics.shared.transient(intensity: 0.5, sharpness: 0.7)
+                                }
+                            )
+                        }
+                        // There is no colour to pick when nothing flashes, so the
+                        // picker fades back rather than sitting there live.
+                        .opacity(prefs.flashEnabled ? 1 : 0.25)
+                        .disabled(!prefs.flashEnabled)
+                        .animation(.easeOut(duration: 0.2), value: prefs.flashEnabled)
                     }
                 }
             }
@@ -119,6 +128,48 @@ struct SettingsView: View {
             )
         }
         .buttonStyle(.plain)
+    }
+
+    /// The flash's on/off switch, in the same card as the feel row above it.
+    ///
+    /// Worth having its own line rather than being folded into the colour picker
+    /// as a "none" swatch: turning the flashing off is an accessibility choice,
+    /// and it should read as one instead of hiding among the colours.
+    private var flashSwitch: some View {
+        Toggle(isOn: $prefs.flashEnabled) {
+            HStack(spacing: 14) {
+                Image(systemName: prefs.flashEnabled ? "bolt.fill" : "bolt.slash.fill")
+                    .font(.system(size: 17, weight: .semibold))
+                    .foregroundStyle(.white)
+                    .frame(width: 26)
+                    .contentTransition(.symbolEffect(.replace))
+
+                VStack(alignment: .leading, spacing: 3) {
+                    Text("Flash on tap")
+                        .font(.system(size: 16, weight: .semibold, design: .rounded))
+                        .foregroundStyle(.white)
+                    Text("Lights the whole screen when you tap the orb.")
+                        .font(.system(size: 12, weight: .regular, design: .rounded))
+                        .foregroundStyle(.white.opacity(0.5))
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+            }
+        }
+        // Grey rather than the system green, which would be the one piece of
+        // colour in an otherwise monochrome app.
+        .tint(Color(white: 0.5))
+        .padding(14)
+        .background(
+            RoundedRectangle(cornerRadius: 15, style: .continuous)
+                .fill(.white.opacity(0.045))
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 15, style: .continuous)
+                .strokeBorder(.white.opacity(0.06), lineWidth: 1)
+        )
+        .onChange(of: prefs.flashEnabled) { _, _ in
+            Haptics.shared.transient(intensity: 0.5, sharpness: 0.7)
+        }
     }
 
     private var whiteSwatch: some View {

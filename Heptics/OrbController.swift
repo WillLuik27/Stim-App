@@ -117,6 +117,10 @@ final class OrbController: ObservableObject {
     @Published private(set) var speed: CGFloat = 0
     /// 0...1 opacity of the full-screen flash fired by a tap.
     @Published var flash: CGFloat = 0
+    /// Mirrors the user's setting. Kept here rather than reaching into
+    /// `Preferences` so the field stays a self-contained simulation that the
+    /// view layer configures, not one that reads global state.
+    var flashEnabled = true
     /// Unit vector in screen space pointing from the goo toward the light. Held
     /// fixed against the real world by `MotionSensor`.
     @Published var light = CGVector(dx: -0.707, dy: -0.707)
@@ -998,7 +1002,12 @@ final class OrbController: ObservableObject {
     /// Slams the screen to the chosen colour, holds, then falls off. Screen
     /// brightness is pushed to maximum for the duration so it throws real light
     /// rather than just showing a coloured rectangle at whatever level was set.
+    ///
+    /// Does nothing at all when the user has switched the flash off — no colour
+    /// and, just as importantly, no touching their screen brightness.
     func fireFlash() {
+        guard flashEnabled else { return }
+
         if savedBrightness == nil {
             savedBrightness = UIScreen.main.brightness
         }
