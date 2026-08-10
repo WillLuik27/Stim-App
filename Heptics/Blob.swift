@@ -36,6 +36,11 @@ struct Blob: Identifiable {
     var target: CGPoint = .zero
     /// Where that finger first went down, for telling a tap from a drag.
     var grabOrigin: CGPoint = .zero
+    /// True when the droplet was drawn by a finger already sweeping across the
+    /// glass rather than by one going down on the core. That finger is dragging
+    /// by definition, so lifting it is never a tap however little ground it
+    /// covers afterwards.
+    var swept = false
 
     /// 0...1 how close the neck back to the core is to letting go.
     var tension: CGFloat = 0
@@ -58,6 +63,11 @@ struct Blob: Identifiable {
     /// Set on a droplet that was never really pulled out — a tap rather than a
     /// drag — so that it slides back into the core without a sound.
     var quiet = false
+    /// Clock time before which the core is not allowed to swallow this droplet.
+    /// A neck can let go while the droplet is still buried in the core — that is
+    /// what a flick out of the middle looks like — and without a moment's grace
+    /// it would be taken straight back on the next frame.
+    var rejoinAfter: TimeInterval = 0
 
     var isCore: Bool { kind == .core }
     var isHeld: Bool { touch != nil }

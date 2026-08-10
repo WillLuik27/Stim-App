@@ -66,8 +66,10 @@ extension HapticProfile {
         symbol: "bolt.fill",
         intensity: 1.0,
         sharpness: 1.0,
-        grainSpacing: 4,
-        grainInterval: 0.014,
+        // Two and a half points between clicks: about as fine as a fingertip can
+        // move at all, so nudging the goo already sets off a run of them.
+        grainSpacing: 2.5,
+        grainInterval: 0.011,
         phrase: [],
         jitter: 0.10,
         bedDrift: 0,

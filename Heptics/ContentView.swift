@@ -25,10 +25,14 @@ struct ContentView: View {
             .coordinateSpace(name: Self.field)
             .onAppear {
                 controller.setBounds(geometry.size)
+                controller.flashEnabled = prefs.flashEnabled
                 controller.onAppear()
             }
             .onChange(of: geometry.size) { _, size in
                 controller.setBounds(size)
+            }
+            .onChange(of: prefs.flashEnabled) { _, enabled in
+                controller.flashEnabled = enabled
             }
         }
         .ignoresSafeArea()

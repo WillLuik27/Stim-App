@@ -5,15 +5,19 @@ import UIKit
 ///
 /// These are the *unprofiled* values — the active `HapticProfile` scales all of
 /// them, so this table sets the hierarchy and the profile sets the character.
+/// The floors here are high on purpose. The point of the app is that the
+/// smallest movement you can make is already felt hard — so the bottom of each
+/// range is most of the way to the top, and what movement buys you is the last
+/// stretch rather than the whole climb.
 enum Strength {
-    /// Texture under a slow drag — should sit just at the edge of noticeable.
-    static let grainMin: Float = 0.10
+    /// Texture under the slowest movement that registers at all.
+    static let grainMin: Float = 0.72
     /// Texture under a fast, far-out drag.
-    static let grainMax: Float = 0.55
+    static let grainMax: Float = 1.0
 
-    /// The underlying buzz while moving, at rest and at full pull.
-    static let buzzMin: Float = 0.06
-    static let buzzMax: Float = 0.72
+    /// The underlying buzz, at the first hint of movement and at full drive.
+    static let buzzMin: Float = 0.40
+    static let buzzMax: Float = 1.0
 
     /// Spring-back thump when you let go.
     static let settle: Float = 0.80
