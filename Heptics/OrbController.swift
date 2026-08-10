@@ -285,7 +285,7 @@ final class OrbController: ObservableObject {
     func touchBegan(id: Int, at point: CGPoint) {
         guard !blobs.isEmpty else { return }
         fingers[id] = Finger(position: point, lastMoved: CACurrentMediaTime())
-        beginDragIfNeeded()
+        syncDragState()
 
         if let index = grabbable(at: point) {
             blobs[index].touch = id
@@ -318,10 +318,12 @@ final class OrbController: ObservableObject {
     func touchEnded(id: Int) {
         let fling = fingers.removeValue(forKey: id)?.velocity ?? .zero
         let flingSpeed = hypot(fling.dx, fling.dy)
+        // Above the guard below, not after it: this finger is off the glass
+        // whether or not it turns out to have been holding anything.
+        defer { syncDragState() }
 
         guard let index = blobs.firstIndex(where: { $0.touch == id }) else { return }
         blobs[index].touch = nil
-        defer { if !blobs.contains(where: \.isHeld) { endDrag() } }
 
         let moved = hypot(blobs[index].target.x - blobs[index].grabOrigin.x,
                           blobs[index].target.y - blobs[index].grabOrigin.y)
@@ -429,21 +431,32 @@ final class OrbController: ObservableObject {
     private func releaseEverything() {
         fingers.removeAll()
         for index in blobs.indices { blobs[index].touch = nil }
-        if isDragging { endDrag() }
+        syncDragState()
         bedRunning = false
         Haptics.shared.stopContinuous()
     }
 
     // The bed is started and stopped by movement rather than by touches — see
-    // `driveHaptics`. These two only track whether a finger is down, which is
+    // `driveHaptics`. This one only tracks whether a finger is down, which is
     // what hides the settings button.
 
-    private func beginDragIfNeeded() {
-        isDragging = true
-    }
-
-    private func endDrag() {
-        isDragging = false
+    /// Whether any finger is on the glass.
+    ///
+    /// Read off `fingers`, which is the only thing that actually knows, rather
+    /// than being flipped by hand at each end of a touch. It used to be turned on
+    /// for every touch that went down but turned off only along the path that
+    /// found a blob to let go of — so a finger holding nothing by the time it
+    /// lifted left it stuck on, and the settings button stayed hidden until some
+    /// later drag happened to end cleanly.
+    ///
+    /// A finger ends up holding nothing more often than that sounds: it grabbed
+    /// nothing on the way down, or the droplet it was carrying was swallowed by
+    /// the core as it passed over the middle.
+    private func syncDragState() {
+        let dragging = !fingers.isEmpty
+        // Guarded because this is also called every frame, and assigning to a
+        // @Published redraws the view whether or not the value changed.
+        if isDragging != dragging { isDragging = dragging }
     }
 
     // MARK: - Simulation
@@ -455,6 +468,10 @@ final class OrbController: ObservableObject {
         let corePosition = blobs[coreIndex].position
         let coreRadius = blobs[coreIndex].radius
 
+        // Belt and braces. Touches are the only thing that should ever move this,
+        // but a button that hides itself must never be able to stay hidden, so
+        // it is reconciled against the truth every frame as well.
+        syncDragState()
         fadeFingers(dt: dt, now: now)
         integrate(dt: dt, centre: centre, corePosition: corePosition, coreRadius: coreRadius)
         let travelled = collideWithWalls()
