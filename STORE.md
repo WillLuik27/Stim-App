@@ -60,10 +60,13 @@ grained, how fast it can repeat, sharpness, jitter, the body of the tap and the
 knocks that follow it, and the pitch line the texture walks through as you
 drag.
 
-TAP TO FLASH
-Tap the orb and the whole screen throws light in a colour you choose from a
-full spectrum. Not for everyone — it can be switched off entirely in Settings,
-and with it off the app never touches your screen brightness.
+TAP TO FLASH — OFF UNTIL YOU ASK FOR IT
+Switch it on and a tap throws the whole screen into a colour you pick from a
+full spectrum, at full brightness. It ships switched off, and turning it on
+asks you to confirm first. PHOTOSENSITIVITY WARNING: with the flash on,
+repeated tapping produces a strobe. Do not use it if you have photosensitive
+epilepsy or are sensitive to flashing light. Left off, the app never touches
+your screen brightness.
 
 SHAKE IT
 The goo feels the phone move. Shake it and the whole field scatters.
@@ -107,8 +110,19 @@ scrutiny about therapeutic claims. Not worth it for version 1.
 
 ## Age rating
 
-**4+.** Answer "None" to every content question — no violence, no profanity,
-no user content, no web access, no gambling.
+**13+**, set by manual override. (Apple retired 12+ and 17+ in the 2025/26
+overhaul; the tiers are now 4+, 9+, 13+, 16+, 18+.)
+
+Every *content* question is still "None" — no violence, no profanity, no user
+content, no web access, no gambling. There is **no flashing-lights question in
+the questionnaire**, so Apple will calculate 4+. You then override upward:
+Apple permits this where "your app has a policy requiring a higher minimum user
+age than the rating assigned."
+
+Why not leave it at 4+: photosensitive epilepsy has peak onset between roughly
+8 and 20, so a 4+ rating markets a strobe feature straight at the most
+susceptible group. 13+ costs almost nothing in reach for a toy like this and
+removes the worst fact in any future complaint.
 
 ## Privacy nutrition label
 
@@ -136,16 +150,22 @@ test them in a private browser window before submitting.
 
 ```
 Pocket Stim is a single-screen haptic toy. Drag out from the orb in the middle
-of the screen to pull goo out of it; swipe to tear a piece off; tap the orb for
-a flash of colour. The gear in the top right opens settings.
+of the screen to pull goo out of it; swipe to tear a piece off. The gear in the
+top right opens settings. Tapping the orb can also flash the screen, but that
+is switched off on a fresh install — see the note below.
 
 The haptics are the app. They cannot be felt in the Simulator — please review
 on a physical iPhone.
 
-Tapping the orb flashes the screen and briefly raises screen brightness. This
-is a deliberate feature and can be switched off in Settings ("Flash on tap"),
-in which case the app never modifies screen brightness. The original brightness
-is always restored, including if the app is backgrounded mid-flash.
+FLASH / PHOTOSENSITIVITY. The app has an optional screen flash. It is OFF by
+default, so a fresh install never flashes and never modifies screen brightness.
+To see it, open the gear ▸ "Flash on tap" ▸ confirm the photosensitivity
+warning that appears. With it on, tapping the orb lights the screen in the
+chosen colour and raises brightness to maximum for ~0.4s. The original
+brightness is always restored, including if the app is backgrounded mid-flash.
+
+The age rating has been manually set to 13+ on the strength of this feature,
+above the 4+ the questionnaire calculates.
 
 No account or demo credentials needed. The app has no network access.
 ```

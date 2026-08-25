@@ -6,7 +6,7 @@ title: Privacy Policy — Pocket Stim
 # Privacy Policy
 
 **Pocket Stim**
-Last updated: 10 August 2026
+Last updated: 24 August 2026
 
 ## The short version
 
@@ -41,7 +41,11 @@ frameworks, no advertising networks, and no crash reporting services.
 ## Children
 
 Because the app collects no data at all, it collects nothing from children
-either. It is suitable for all ages.
+either.
+
+Note that this policy covers data only. Pocket Stim has an optional screen
+flash, switched off until you turn it on — see the
+[safety note](index.html#flashing-light-safety) on the support page.
 
 ## Changes
 

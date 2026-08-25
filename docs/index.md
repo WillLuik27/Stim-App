@@ -24,9 +24,11 @@ Two things to check. Make sure **Settings ▸ Sounds & Haptics ▸ System Haptic
 is switched on. And Low Power Mode disables haptics system-wide on iPhone —
 turn it off and the goo comes back to life.
 
-**The screen flashes when I tap and I don't want it to.**
-Open the gear in the top right and switch off **Flash on tap**. The app will
-then never change your screen brightness or light the screen up.
+**How do I get the screen to flash?**
+It's off when you install the app. Open the gear in the top right, switch on
+**Flash on tap**, and read the warning before you confirm — see below. To stop
+it, switch the same toggle back off; the app then never changes your screen
+brightness or lights the screen up.
 
 **The haptics feel too weak or too harsh.**
 Gear ▸ Change feel. There are four presets — Aggressive, Smooth, Melodic and
@@ -42,6 +44,25 @@ across the middle keeps pulling more out.
 **Does it work on iPad?**
 Not currently. Pocket Stim is iPhone-only, because iPads have no Taptic Engine
 and the whole app is built around what you feel.
+
+## Flashing light safety
+
+Pocket Stim has an optional **Flash on tap**. With it on, tapping the orb
+lights the whole screen at full brightness, and tapping repeatedly produces a
+strobe.
+
+**It is switched off when you install the app**, and turning it on requires
+confirming a warning. It stays off until you do that.
+
+A small number of people have photosensitive epilepsy and can have a seizure
+when exposed to flashing light, even with no history of seizures before. **Do
+not switch the flash on if you have photosensitive epilepsy or are sensitive to
+flashing light.** If you feel dizzy, disoriented, or unwell while using it,
+stop, switch the flash off in Settings, and rest. Seek medical advice if
+symptoms continue.
+
+The rest of the app — the goo and the haptics — never changes your screen
+brightness and never flashes.
 
 ## Privacy
 
