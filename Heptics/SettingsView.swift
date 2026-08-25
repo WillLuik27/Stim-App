@@ -5,6 +5,10 @@ struct SettingsView: View {
     @ObservedObject var prefs: Preferences
     @Environment(\.dismiss) private var dismiss
 
+    /// Raised when the user reaches for the flash switch while it is off. The
+    /// switch itself never turns the flash on — see `flashBinding`.
+    @State private var showingFlashWarning = false
+
     var body: some View {
         NavigationStack {
             content
@@ -136,7 +140,7 @@ struct SettingsView: View {
     /// as a "none" swatch: turning the flashing off is an accessibility choice,
     /// and it should read as one instead of hiding among the colours.
     private var flashSwitch: some View {
-        Toggle(isOn: $prefs.flashEnabled) {
+        Toggle(isOn: flashBinding) {
             HStack(spacing: 14) {
                 Image(systemName: prefs.flashEnabled ? "bolt.fill" : "bolt.slash.fill")
                     .font(.system(size: 17, weight: .semibold))
@@ -148,7 +152,9 @@ struct SettingsView: View {
                     Text("Flash on tap")
                         .font(.system(size: 16, weight: .semibold, design: .rounded))
                         .foregroundStyle(.white)
-                    Text("Lights the whole screen when you tap the orb.")
+                    // The hazard is named here as well as in the alert, so it is
+                    // legible to someone who never touches the switch.
+                    Text("Lights the whole screen at full brightness. Intense flashing — not for anyone sensitive to light.")
                         .font(.system(size: 12, weight: .regular, design: .rounded))
                         .foregroundStyle(.white.opacity(0.5))
                         .fixedSize(horizontal: false, vertical: true)
@@ -170,6 +176,41 @@ struct SettingsView: View {
         .onChange(of: prefs.flashEnabled) { _, _ in
             Haptics.shared.transient(intensity: 0.5, sharpness: 0.7)
         }
+        .alert("Flashing light", isPresented: $showingFlashWarning) {
+            Button("Cancel", role: .cancel) { }
+            Button("Turn on flash") { prefs.flashEnabled = true }
+        } message: {
+            Text("""
+                 Tapping the orb will light the whole screen at full brightness. \
+                 This is intense stimulation, and tapping repeatedly produces a \
+                 strobe.
+
+                 Do not turn this on if you have photosensitive epilepsy or are \
+                 sensitive to flashing light. Stop using it and rest if you feel \
+                 dizzy, disoriented or unwell.
+                 """)
+        }
+    }
+
+    /// The switch is a request, not a command.
+    ///
+    /// Turning the flash *off* is immediate — nothing should ever stand between a
+    /// user and stopping the strobe. Turning it *on* only raises the warning; the
+    /// preference is written in the alert's confirm button and nowhere else, so
+    /// the flash cannot be enabled without the hazard having been put on screen
+    /// first. The switch springs back to off if the alert is cancelled, because
+    /// `prefs.flashEnabled` is what it reads.
+    private var flashBinding: Binding<Bool> {
+        Binding(
+            get: { prefs.flashEnabled },
+            set: { wantsOn in
+                if wantsOn {
+                    showingFlashWarning = true
+                } else {
+                    prefs.flashEnabled = false
+                }
+            }
+        )
     }
 
     private var whiteSwatch: some View {

@@ -29,10 +29,13 @@ final class Preferences: ObservableObject {
     ///
     /// The flash forces screen brightness to maximum, so tapping over and over is
     /// a full-brightness strobe. That is the whole point of it for most people and
-    /// exactly the wrong thing for anyone sensitive to flashing light, so it has
-    /// to be possible to turn off. On by default: this is how the app has always
-    /// behaved, and a setting that silently changes underneath existing users is
-    /// worse than one they have to find.
+    /// exactly the wrong thing for anyone sensitive to flashing light.
+    ///
+    /// **Off by default, and deliberately so.** Nobody should meet a full-screen
+    /// strobe before they have been told it is there — the off switch is no use to
+    /// someone who finds it after the seizure. Turning it on goes through the
+    /// warning in `SettingsView`, so the first flash a user ever sees is one they
+    /// asked for, having read what it does.
     @Published var flashEnabled: Bool {
         didSet { defaults.set(flashEnabled, forKey: Keys.flashEnabled) }
     }
@@ -190,7 +193,7 @@ final class Preferences: ObservableObject {
 
         let saved = store.string(forKey: Keys.profile).flatMap(HapticProfile.Kind.init(rawValue:))
         profileKind = saved ?? HapticProfile.fallback.id
-        flashEnabled = store.object(forKey: Keys.flashEnabled) as? Bool ?? true
+        flashEnabled = store.object(forKey: Keys.flashEnabled) as? Bool ?? false
         flashUsesWhite = store.object(forKey: Keys.flashWhite) as? Bool ?? true
         flashHue = store.object(forKey: Keys.flashHue) as? Double ?? 0.55
 
